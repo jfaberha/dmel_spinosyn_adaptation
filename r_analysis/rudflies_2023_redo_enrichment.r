@@ -1,6 +1,6 @@
 ### In R ###
 #configure r environment
-setwd("/scratch/user/jfaberha/20260325_052109/admera/gp_analysis/rudflies_2023_redo/r")
+setwd("/scratch/user/jfaberha/20260402_004907/admera/gp_analysis/rudflies_2023_redo/r")
 library(emmeans)
 library(matrixStats)
 #install.packages("~/Downloads/ACER-master", repos=NULL, type="source")

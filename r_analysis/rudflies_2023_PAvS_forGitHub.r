@@ -1,6 +1,6 @@
 ### In R ###
 #configure r environment
-setwd("/scratch/user/jfaberha/20260325_052109/admera/gp_analysis/rudflies_2023_redo/r")
+setwd("/scratch/user/jfaberha/20260409_004421/admera/gp_analysis/rudflies_2023_redo/r")
 library(emmeans)
 library(matrixStats)
 library(ACER)
@@ -427,8 +427,6 @@ names(spino.cand) <- "Gene"
 glm.all.rolwin20.annot.spino <- merge(spino.cand, glm.all.rolwin20.annot, by="Gene")
 
 
-
-
 ################
 ### Figure 2 ###
 ################
@@ -563,8 +561,6 @@ for(g in c(1:nrow(freq_means_annot_nr_spino))) { #number of sites in spino candi
   tryCatch({
   	temp_chrom <- freq_means_annot_nr_spino[g,1] #find chrom
   	temp_e <- freq_means_annot_nr_spino[g,3] #find E mean frequency
-  	temp_s <- freq_means_annot_nr_spino[g,4] #find S mean frequency
-  	temp_pa <- freq_means_annot_nr_spino[g,5] #find PA mean frequency
   	temp_cons <- freq_means_annot_nr_spino[g,24] #find allele consequence
   	#select bg SNPs by matching chromosome, consequence, and approximate size
   	temp_bg <- freq_means_annot_nr_bg[freq_means_annot_nr_bg$CHROM %in% temp_chrom[1] &
@@ -608,8 +604,6 @@ for(g in c(1:nrow(freq_means_annot_nr_spino))) { #number of sites in spino candi
   tryCatch({
   	temp_chrom <- freq_means_annot_nr_EvS[g,1] #find chrom
   	temp_e <- freq_means_annot_nr_EvS[g,3] #find E mean frequency
-  	temp_s <- freq_means_annot_nr_EvS[g,4] #find S mean frequency
-  	temp_pa <- freq_means_annot_nr_EvS[g,5] #find PA mean frequency
   	temp_cons <- freq_means_annot_nr_EvS[g,24] #find allele consequence
   	#select bg SNPs by matching chromosome, consequence, and approximate size
   	temp_bg <- freq_means_annot_nr_EvS_bg[freq_means_annot_nr_EvS_bg$CHROM %in% temp_chrom[1] &
@@ -653,8 +647,6 @@ for(g in c(1:nrow(freq_means_annot_nr_spino))) { #number of sites in spino candi
   tryCatch({
   	temp_chrom <- freq_means_annot_nr_EvPA[g,1] #find chrom
   	temp_e <- freq_means_annot_nr_EvPA[g,3] #find E mean frequency
-  	temp_s <- freq_means_annot_nr_EvPA[g,4] #find S mean frequency
-  	temp_pa <- freq_means_annot_nr_EvPA[g,5] #find PA mean frequency
   	temp_cons <- freq_means_annot_nr_EvPA[g,24] #find allele consequence
   	#select bg SNPs by matching chromosome, consequence, and approximate size
   	temp_bg <- freq_means_annot_nr_EvPA_bg[freq_means_annot_nr_EvPA_bg$CHROM %in% temp_chrom[1] &
@@ -804,7 +796,36 @@ pdf(file = "rudflies_2023_redo.freq_means_annot_nr_E2Sdiff.mean.multiboxplot.pdf
 dev.off()
 
 
+### Are there differences in AF changes overall? ###
+## Calculate all allele frequency differences, both raw and percent changes
+freq_means_afdiff <- as.data.frame(cbind(E2S=abs(freq_means$E.af-freq_means$S.af),
+	E2PA=abs(freq_means$E.af-freq_means$PA.af),
+	E2S.perc=abs((freq_means$E.af - freq_means$S.af)/freq_means$E.af),
+	E2PA.perc=abs((freq_means$E.af - freq_means$PA.af)/freq_means$E.af)))
 
+## Reformat for running T-tests
+freq_means_afdiff <- data.frame(rbind(cbind(contrast="E2S",
+		af_diff=freq_means_afdiff$E2S,
+		perc_diff=freq_means_afdiff$E2S.perc),
+	cbind(contrast="E2PA",
+		af_diff=freq_means_afdiff$E2PA,
+		perc_diff=freq_means_afdiff$E2PA.perc)))
+		
+## Set AF differences to numeric format
+freq_means_afdiff[,2] <- as.numeric(freq_means_afdiff[,2])
+freq_means_afdiff[,3] <- as.numeric(freq_means_afdiff[,3])
+
+## T-test for differences in all pairwise absolute AF-changes
+t.test(af_diff ~ contrast, 
+	data = freq_means_afdiff,
+	alternative = 'two.sided')
+
+## T-test for differences in all pairwise percent AF-changes
+t.test(perc_diff ~ contrast, 
+	data = freq_means_afdiff,
+	alternative = 'two.sided')
+
+	
 ################
 ### Figure 3 ###
 ################
@@ -986,9 +1007,6 @@ for(g in c(1:nrow(freq_means_t1_annot_nr_spino))) { #number of sites in spino ca
   tryCatch({
   	temp_chrom <- freq_means_t1_annot_nr_spino[g,1] #find chrom
   	temp_e <- freq_means_t1_annot_nr_spino[g,3] #find E mean frequency
-  	temp_se <- freq_means_t1_annot_nr_spino[g,5] #find SE mean frequency
-  	temp_sp <- freq_means_t1_annot_nr_spino[g,6] #find SP mean frequency
-  	temp_pa <- freq_means_t1_annot_nr_spino[g,7] #find PA mean frequency
   	temp_cons <- freq_means_t1_annot_nr_spino[g,14] #find allele consequence
   	#select bg SNPs by matching chromosome, consequence, and approximate size
   	temp_bg <- freq_means_t1_annot_nr_bg[freq_means_t1_annot_nr_bg$CHROM %in% temp_chrom[1] &
@@ -1032,9 +1050,6 @@ for(g in c(1:nrow(freq_means_t1_annot_nr_EvSE))) { #number of sites in EvSE cand
   tryCatch({
   	temp_chrom <- freq_means_t1_annot_nr_EvSE[g,1] #find chrom
   	temp_e <- freq_means_t1_annot_nr_EvSE[g,3] #find E mean frequency
-  	temp_se <- freq_means_t1_annot_nr_EvSE[g,5] #find SE mean frequency
-  	temp_sp <- freq_means_t1_annot_nr_EvSE[g,6] #find SP mean frequency
-  	temp_pa <- freq_means_t1_annot_nr_EvSE[g,7] #find PA mean frequency
   	temp_cons <- freq_means_t1_annot_nr_EvSE[g,14] #find allele consequence
   	#select bg SNPs by matching chromosome, consequence, and approximate size
   	temp_bg <- freq_means_t1_annot_nr_bg[freq_means_t1_annot_nr_bg$CHROM %in% temp_chrom[1] &
@@ -1080,9 +1095,6 @@ for(g in c(1:nrow(freq_means_t1_annot_nr_EvSP))) { #number of sites in EvSP cand
   tryCatch({
   	temp_chrom <- freq_means_t1_annot_nr_EvSP[g,1] #find chrom
   	temp_e <- freq_means_t1_annot_nr_EvSP[g,3] #find E mean frequency
-  	temp_se <- freq_means_t1_annot_nr_EvSP[g,5] #find SE mean frequency
-  	temp_sp <- freq_means_t1_annot_nr_EvSP[g,6] #find SP mean frequency
-  	temp_pa <- freq_means_t1_annot_nr_EvSP[g,7] #find PA mean frequency
   	temp_cons <- freq_means_t1_annot_nr_EvSP[g,14] #find allele consequence
   	#select bg SNPs by matching chromosome, consequence, and approximate size
   	temp_bg <- freq_means_t1_annot_nr_bg[freq_means_t1_annot_nr_bg$CHROM %in% temp_chrom[1] &
@@ -1128,8 +1140,6 @@ for(g in c(1:nrow(freq_means_t1_annot_nr_EvPA))) { #number of sites in EvPA cand
   tryCatch({
   	temp_chrom <- freq_means_t1_annot_nr_EvPA[g,1] #find chrom
   	temp_e <- freq_means_t1_annot_nr_EvPA[g,3] #find E mean frequency
-  	temp_se <- freq_means_t1_annot_nr_EvPA[g,5] #find SE mean frequency
-  	temp_sp <- freq_means_t1_annot_nr_EvPA[g,6] #find SP mean frequency
   	temp_pa <- freq_means_t1_annot_nr_EvPA[g,7] #find PA mean frequency
   	temp_cons <- freq_means_t1_annot_nr_EvPA[g,14] #find allele consequence
   	#select bg SNPs by matching chromosome, consequence, and approximate size
@@ -1329,9 +1339,544 @@ E2PAdiff <- ggplot(data = freq_means_t1_annot_nr_E2PAdiff[freq_means_t1_annot_nr
 
 
 ## Save all plots together
-pdf(file = "rudflies_2023_redo.freq_means_t1_annot_nr_E2SEdiff.mean.multiboxplot.pdf", width=3, height=9)
+pdf(file = "rudflies_2023_redo.freq_means_t1_annot_nr_E2SEdiff.mean.multiboxplot.pdf", width=2.4, height=6)
 	ggarrange(E2SEdiff, E2SPdiff, E2PAdiff,
               ncol = 1, nrow = 3)
+dev.off()
+
+
+### Are there differences in AF changes overall? ###
+## Calculate all allele frequency differences, both raw and percent changes
+freq_means_t1_afdiff <- as.data.frame(cbind(E2S=abs(freq_means_t1$E.af-freq_means_t1$S.af),
+	E2SE=abs(freq_means_t1$E.af-freq_means_t1$SE.af),
+	E2SP=abs(freq_means_t1$E.af-freq_means_t1$SP.af),
+	E2PA=abs(freq_means_t1$E.af-freq_means_t1$PA.af),
+	E2S.perc=abs((freq_means_t1$E.af - freq_means_t1$S.af)/freq_means_t1$E.af),
+	E2SE.perc=abs((freq_means_t1$E.af - freq_means_t1$SE.af)/freq_means_t1$E.af),
+	E2SP.perc=abs((freq_means_t1$E.af - freq_means_t1$SP.af)/freq_means_t1$E.af),
+	E2PA.perc=abs((freq_means_t1$E.af - freq_means_t1$PA.af)/freq_means_t1$E.af)))
+
+## Reformat for running T-tests
+freq_means_t1_afdiff <- data.frame(rbind(cbind(contrast="E2S",
+		af_diff=freq_means_t1_afdiff$E2S,
+		perc_diff=freq_means_t1_afdiff$E2S.perc),
+	cbind(contrast="E2SE",
+		af_diff=freq_means_t1_afdiff$E2SE,
+		perc_diff=freq_means_t1_afdiff$E2SE.perc),
+	cbind(contrast="E2SP",
+		af_diff=freq_means_t1_afdiff$E2SP,
+		perc_diff=freq_means_t1_afdiff$E2SP.perc),
+	cbind(contrast="E2PA",
+		af_diff=freq_means_t1_afdiff$E2PA,
+		perc_diff=freq_means_t1_afdiff$E2PA.perc)))
+		
+## Set AF differences to numeric format
+freq_means_t1_afdiff[,2] <- as.numeric(freq_means_t1_afdiff[,2])
+freq_means_t1_afdiff[,3] <- as.numeric(freq_means_t1_afdiff[,3])
+
+	   
+## T-test for differences in all pairwise absolute AF-changes
+pairwise.t.test(freq_means_t1_afdiff$af_diff, 
+	freq_means_t1_afdiff$contrast,
+	alternative = 'two.sided')	
+#	Pairwise comparisons using t tests with pooled SD 
+#
+#data:  freq_means_t1_afdiff$af_diff and freq_means_t1_afdiff$contrast 
+#
+#     E2PA   E2S    E2SE  
+#E2S  <2e-16 -      -     
+#E2SE <2e-16 <2e-16 -     
+#E2SP <2e-16 <2e-16 <2e-16
+
+## T-test for differences in all pairwise percent AF-changes
+pairwise.t.test(freq_means_t1_afdiff$perc_diff, 
+	freq_means_t1_afdiff$contrast,
+	alternative = 'two.sided')
+#	Pairwise comparisons using t tests with pooled SD 
+#
+#data:  freq_means_t1_afdiff$perc_diff and freq_means_t1_afdiff$contrast 
+#
+#     E2PA    E2S     E2SE   
+#E2S  < 2e-16 -       -      
+#E2SE < 2e-16 < 2e-16 -      
+#E2SP < 2e-16 < 2e-16 1.9e-14
+
+## Find group means and standard deviations
+freq_means_t1_afdiff %>%
+  group_by(contrast) %>%
+  summarise(raw_avg = mean(af_diff), raw_stdev = sd(af_diff), perc_avg = mean(perc_diff), perc_stdev = sd(perc_diff), .groups="keep")
+## A tibble: 4 × 5
+## Groups:   contrast [4]
+#  contrast raw_avg raw_stdev perc_avg perc_stdev
+#  <chr>      <dbl>     <dbl>    <dbl>      <dbl>
+#1 E2PA      0.0521    0.0524    0.372      1.04 
+#2 E2S       0.0204    0.0178    0.118      0.167
+#3 E2SE      0.0263    0.0250    0.146      0.197
+#4 E2SP      0.0241    0.0198    0.141      0.227
+
+
+#################################################
+### Parallelism vs drift from founder to TPT1 ###
+#################################################
+
+## Here, we want to calculate population allele frequency differentiation from founders to 
+## TPT1, then see whether within-condition (SE, SP, or S combined) are better correlated 
+## (or more parallel) than between-condition correlations. Parallelism differentiates 
+## directional selection from genetic drift, and by looking at loci with high divergence 
+## from founder, correlation metrics between all population pairs will give us a sense of 
+## how strong directional selection is (via high correlation metrics 
+## within-condition/treatment).
+
+## Make a new metadata table filtered to include only TPT1 S and E samples
+## We only use these samples because they were both derived from the same "E" founder pop
+haf.meta.T1.noPAfilt <- unique(haf.meta.T1filt[haf.meta.T1filt$batch == "a" & (haf.meta.T1filt$treat == "S" | haf.meta.T1filt$treat == "E"),])
+haf.meta.T1filt <- haf.meta.T1filt[which((haf.meta.T1filt$samp %in% c(1:9,30:171))==TRUE),] #only spinosad experiment samples
+haf.freq.T1.noPAfilt <- haf.freq.T1filt[, which((names(haf.freq.T1filt) %in% haf.meta.T1.noPAfilt$samp)==TRUE)] #match samples across tables
+
+
+## Calculate E founder mean for all loci (E was the founder for E and S treatments)
+head(haf.freq[,c(1:5)]) #samples 1, 2, and 3 are the E founder samples
+haf.freq.Fmean <- cbind(haf.freq[,c(1:2)], F=rowMeans(haf.freq[,c(3:5)]))
+
+## Use this color scheme for "condition" side colors
+sidecols_EvS <- haf.meta.T1.noPAfilt$condition 
+sidecols_EvS <- gsub("SP","#D9B851",sidecols_EvS)
+sidecols_EvS <- gsub("SE","#848556",sidecols_EvS)
+sidecols_EvS <- gsub("E","#D26183",sidecols_EvS)
+
+### We want to filter based on the highest AF changes in any direction in any sample ###
+### First, choose top 2% of AF changes in any SE, SP, or E samples at TPT1
+haf.freq.Fmean.T1filt <- merge(haf.freq.Fmean, cbind(haf.sites.T1filt, haf.freq.T1.noPAfilt), by=c("CHROM","POS")) 
+
+## Calculate absolute difference from founder mean
+haf.freq.Fdiff.T1filt <- apply(abs(haf.freq.Fmean.T1filt[,c(4:ncol(haf.freq.Fmean.T1filt))] - haf.freq.Fmean.T1filt$F), 2, rank)
+
+## Find the minimum difference from founder across all samples and apply ranking
+min_T1_AFrank <- cbind(haf.freq.Fmean.T1filt[,c(1:2)], minRank =rowMins(haf.freq.Fdiff.T1filt))
+
+## This filter will pull loci where any sample falls within the top 2% of AF changes
+top_T1_AFdiff <- min_T1_AFrank[min_T1_AFrank$minRank < (0.02 * nrow(min_T1_AFrank)),]
+
+## Retrieve the actual allele frequencies for top ranked loci
+top_T1_AFdiff_table <- merge(top_T1_AFdiff[,-3], merge(haf.sites.T1filt,haf.freq.Fmean.T1filt,by=c("CHROM","POS")), by=c("CHROM","POS"))
+
+## We want to calculate AF change from TPT0 and TPT1 for all cages and all filtered loci
+top_T1_AFdiff_distance <- c()#create empty object
+for(n in c(4:ncol(top_T1_AFdiff_table))) { #loop through each TPT1 cage
+	temp_dist <- top_T1_AFdiff_table[,n] - top_T1_AFdiff_table[,3] #sample "n" - E T0 mean
+  	#add row to table
+  	top_T1_AFdiff_distance <- cbind(top_T1_AFdiff_distance,temp_dist)
+  	#name new column
+  	colnames(top_T1_AFdiff_distance)[n-3] <- colnames(top_T1_AFdiff_table)[n]
+}
+
+## Calculate Spearman correlation metrics between cages for all loci
+top_T1_AFdiff_cormat <- cor(top_T1_AFdiff_distance, method = "spearman", use = "pairwise.complete.obs")
+diag(top_T1_AFdiff_cormat) <- NA #make the self-self correlations NA
+
+## Make the heatmap
+pdf(file = "rudflies_2023_redo.top_T1_AFdiff_distance.heatmap.pdf", width=10, height=10)
+	heatmap.2(top_T1_AFdiff_cormat, dendrogram="both", ColSideColors=sidecols_EvS, RowSideColors=sidecols_EvS, trace = "none")
+dev.off()
+
+
+### Second, choose top 2% of AF changes in any SE sample at TPT1
+## Filter for SE samples only
+haf.meta.T1.SEfilt <- unique(haf.meta.T1filt[haf.meta.T1filt$batch == "a" & (haf.meta.T1filt$condition == "SE"),]) #filter for SE samples only
+haf.freq.T1.SEfilt <- haf.freq.T1filt[, which((names(haf.freq.T1filt) %in% haf.meta.T1.SEfilt$samp)==TRUE)] #match samples across tables
+
+## Merge founder mean AF frequencies
+haf.freq.Fmean.T1.SEfilt <- merge(haf.freq.Fmean, cbind(haf.sites.T1filt, haf.freq.T1.SEfilt), by=c("CHROM","POS")) 
+
+## Calculate absolute difference from founder mean
+haf.freq.Fdiff.T1.SEfilt <- apply(abs(haf.freq.Fmean.T1.SEfilt[,c(4:ncol(haf.freq.Fmean.T1.SEfilt))]-haf.freq.Fmean.T1.SEfilt$F), 2, rank)
+
+## Find the minimum difference from founder across all SE samples and apply ranking
+min_T1_SE_AFrank <- cbind(haf.freq.Fmean.T1.SEfilt[,c(1:2)], minRank =rowMins(haf.freq.Fdiff.T1filt))
+
+## This filter will pull loci where any SE sample falls within the top 2% of AF changes
+top_T1_SE_AFdiff <- min_T1_SE_AFrank[min_T1_SE_AFrank$minRank < (0.02 * nrow(min_T1_SE_AFrank)),]
+
+## Retrieve the actual allele frequencies for top ranked loci
+top_T1_SE_AFdiff_table <- merge(top_T1_SE_AFdiff[,-3], merge(haf.sites.T1filt,haf.freq.Fmean.T1filt,by=c("CHROM","POS")), by=c("CHROM","POS"))
+
+## We want to calculate AF change from TPT0 and TPT1 for all cages and all filtered loci
+top_T1_SE_AFdiff_distance <- c()#create empty object
+for(n in c(4:ncol(top_T1_SE_AFdiff_table))) { #loop through each TPT1 SE cage
+	temp_dist <- top_T1_SE_AFdiff_table[,n]-top_T1_SE_AFdiff_table[,3] #sample "n"-E T0 mean
+  	#add row to table
+  	top_T1_SE_AFdiff_distance <- cbind(top_T1_SE_AFdiff_distance,temp_dist)
+  	#name new column
+  	colnames(top_T1_SE_AFdiff_distance)[n-3] <- colnames(top_T1_SE_AFdiff_table)[n]
+}
+
+## Calculate Spearman correlation metrics between cages for all loci
+top_T1_SE_AFdiff_cormat <- cor(top_T1_SE_AFdiff_distance, method = "spearman", use = "pairwise.complete.obs")
+diag(top_T1_SE_AFdiff_cormat) <- NA #make the self-self correlations NA
+
+## Make the heatmap
+pdf(file = "rudflies_2023_redo.top_T1_SE_AFdiff_distance.heatmap.pdf", width=10, height=10)
+	heatmap.2(top_T1_SE_AFdiff_cormat, dendrogram="both", ColSideColors=sidecols_EvS, RowSideColors=sidecols_EvS, trace = "none")
+dev.off()
+
+
+### Third, choose top 2% of AF changes in any SP sample at TPT1
+## Filter for SP samples only
+haf.meta.T1.SPfilt <- unique(haf.meta.T1filt[haf.meta.T1filt$batch == "a" & (haf.meta.T1filt$condition == "SP"),]) #filter for SP samples only
+haf.freq.T1.SPfilt <- haf.freq.T1filt[, which((names(haf.freq.T1filt) %in% haf.meta.T1.SPfilt$samp)==TRUE)] #match samples across tables
+
+## Merge founder mean AF frequencies
+haf.freq.Fmean.T1.SPfilt <- merge(haf.freq.Fmean, cbind(haf.sites.T1filt, haf.freq.T1.SPfilt), by=c("CHROM","POS")) 
+
+## Calculate absolute difference from founder mean
+haf.freq.Fdiff.T1.SPfilt <- apply(abs(haf.freq.Fmean.T1.SPfilt[,c(4:ncol(haf.freq.Fmean.T1.SPfilt))]-haf.freq.Fmean.T1.SPfilt$F), 2, rank)
+
+## Find the minimum difference from founder across all SP samples and apply ranking
+min_T1_SP_AFrank <- cbind(haf.freq.Fmean.T1.SPfilt[,c(1:2)], minRank =rowMins(haf.freq.Fdiff.T1filt))
+
+## This filter will pull loci where any SP sample falls within the top 2% of AF changes
+top_T1_SP_AFdiff <- min_T1_SP_AFrank[min_T1_SP_AFrank$minRank < (0.02 * nrow(min_T1_SP_AFrank)),]
+
+## Retrieve the actual allele frequencies for top ranked loci
+top_T1_SP_AFdiff_table <- merge(top_T1_SP_AFdiff[,-3], merge(haf.sites.T1filt,haf.freq.Fmean.T1filt,by=c("CHROM","POS")), by=c("CHROM","POS"))
+
+## We want to calculate AF change from TPT0 and TPT1 for all cages and all filtered loci
+top_T1_SP_AFdiff_distance <- c()#create empty object
+for(n in c(4:ncol(top_T1_SP_AFdiff_table))) { #loop through each TPT1 SP cage
+	temp_dist <- top_T1_SP_AFdiff_table[,n]-top_T1_SP_AFdiff_table[,3] #sample "n"-E T0 mean
+  	#add row to table
+  	top_T1_SP_AFdiff_distance <- cbind(top_T1_SP_AFdiff_distance,temp_dist)
+  	#name new column
+  	colnames(top_T1_SP_AFdiff_distance)[n-3] <- colnames(top_T1_SP_AFdiff_table)[n]
+}
+
+## Calculate Spearman correlation metrics between cages for all loci
+top_T1_SP_AFdiff_cormat <- cor(top_T1_SP_AFdiff_distance, method = "spearman", use = "pairwise.complete.obs")
+diag(top_T1_SP_AFdiff_cormat) <- NA #make the self-self correlations NA
+
+## Make the heatmap
+pdf(file = "rudflies_2023_redo.top_T1_SP_AFdiff_distance.heatmap.pdf", width=10, height=10)
+	heatmap.2(top_T1_SP_AFdiff_cormat, dendrogram="both", ColSideColors=sidecols_EvS, RowSideColors=sidecols_EvS, trace = "none")
+dev.off()
+
+
+### Fourth, choose top 2% of AF changes in any S sample (SE or SP) at TPT1
+## Filter for SE or SP samples, no E
+haf.meta.T1.Sfilt <- unique(haf.meta.T1filt[haf.meta.T1filt$batch == "a" & (haf.meta.T1filt$condition == "SE" | haf.meta.T1filt$condition == "SP"),])
+haf.freq.T1.Sfilt <- haf.freq.T1filt[, which((names(haf.freq.T1filt) %in% haf.meta.T1.Sfilt$samp)==TRUE)] #match samples across tables
+
+## Merge founder mean AF frequencies
+haf.freq.Fmean.T1.Sfilt <- merge(haf.freq.Fmean, cbind(haf.sites.T1filt, haf.freq.T1.Sfilt), by=c("CHROM","POS")) 
+
+## Calculate absolute difference from founder mean
+haf.freq.Fdiff.T1.Sfilt <- apply(abs(haf.freq.Fmean.T1.Sfilt[,c(4:ncol(haf.freq.Fmean.T1.Sfilt))]-haf.freq.Fmean.T1.Sfilt$F), 2, rank)
+
+## Find the minimum difference from founder across all S samples and apply ranking
+min_T1_S_AFrank <- cbind(haf.freq.Fmean.T1.Sfilt[,c(1:2)], minRank =rowMins(haf.freq.Fdiff.T1filt))
+
+## This filter will pull loci where any S sample falls within the top 2% of AF changes
+top_T1_S_AFdiff <- min_T1_S_AFrank[min_T1_S_AFrank$minRank < (0.02 * nrow(min_T1_S_AFrank)),]
+
+## Retrieve the actual allele frequencies for top ranked loci
+top_T1_S_AFdiff_table <- merge(top_T1_S_AFdiff[,-3], merge(haf.sites.T1filt,haf.freq.Fmean.T1filt,by=c("CHROM","POS")), by=c("CHROM","POS"))
+
+## We want to calculate AF change from TPT0 and TPT1 for all cages and all filtered loci
+top_T1_S_AFdiff_distance <- c()#create empty object
+for(n in c(4:ncol(top_T1_S_AFdiff_table))) { #loop through each TPT1 S cage
+	temp_dist <- top_T1_S_AFdiff_table[,n] - top_T1_S_AFdiff_table[,3] #sample "n"-E T0 mean
+  	#add row to table
+  	top_T1_S_AFdiff_distance <- cbind(top_T1_S_AFdiff_distance,temp_dist)
+  	#name new column
+  	colnames(top_T1_S_AFdiff_distance)[n-3] <- colnames(top_T1_S_AFdiff_table)[n]
+}
+
+## Calculate Spearman correlation metrics between cages for all loci
+top_T1_S_AFdiff_cormat <- cor(top_T1_S_AFdiff_distance, method = "spearman", use = "pairwise.complete.obs")
+diag(top_T1_S_AFdiff_cormat) <- NA #make the self-self correlations NA
+
+## Make the heatmap
+pdf(file = "rudflies_2023_redo.top_T1_S_AFdiff_distance.heatmap.pdf", width=10, height=10)
+	heatmap.2(top_T1_S_AFdiff_cormat, dendrogram="both", ColSideColors=sidecols_EvS, RowSideColors=sidecols_EvS, trace = "none")
+dev.off()
+
+### Finally, use AF changes from TPT0 to TPT1 for all loci
+## We want to calculate AF change from TPT0 and TPT1 for all cages and all loci
+all_T1_AFdiff_distance <- c()#create empty object
+for(n in c(4:ncol(haf.freq.Fmean.T1filt))) { #loop through each TPT1 cage
+	temp_dist <- haf.freq.Fmean.T1filt[,n] - haf.freq.Fmean.T1filt[,3] #sample "n" - E T0 mean
+  	#add row to table
+  	all_T1_AFdiff_distance <- cbind(all_T1_AFdiff_distance,temp_dist)
+  	#name new column
+  	colnames(all_T1_AFdiff_distance)[n-3] <- colnames(haf.freq.Fmean.T1filt)[n]
+}
+
+## Calculate Spearman correlation metrics between cages for all loci
+all_T1_AFdiff_cormat <- cor(all_T1_AFdiff_distance, method = "spearman", use = "pairwise.complete.obs")
+diag(all_T1_AFdiff_cormat) <- NA #make the self-self correlations NA
+
+## Make the heatmap
+pdf(file = "rudflies_2023_redo.all_T1_AFdiff_distance.heatmap.pdf", width=10, height=10)
+	heatmap.2(all_T1_AFdiff_cormat, dendrogram="both", ColSideColors=sidecols_EvS, RowSideColors=sidecols_EvS, trace = "none")
+dev.off()
+
+
+
+
+######### UNFINISHED #########
+
+### Calculate whether there is a significant difference in absolute change in AF from TPT0 
+### to TPT1 between SE and SP pops.
+all_T1_AFdiff_samp <- abs(all_T1_AFdiff_distance[sample(nrow(all_T1_AFdiff_distance), 10000),])
+all_T1_AFdiff_ttest <- c()#create empty object
+## Outer loop will cycle through all samples for matrix columns
+for(n in ncol(all_T1_AFdiff_samp)) { #loop through each TPT1 cage
+	## Inner loop will cycle through all samples for matrix rows
+	for(m in ncol(all_T1_AFdiff_samp)) { 
+		## T-test for differences in all pairwise percent AF-changes
+		pairwise.t.test(all_T1_AFdiff_samp[,n], 
+						all_T1_AFdiff_samp[,m],
+						alternative = 'two.sided')
+
+  		#add row to table
+  		all_T1_AFdiff_ttest <- cbind(all_T1_AFdiff_ttest,temp_p)
+  		#name new column
+  		colnames(all_T1_AFdiff_ttest)[n] <- colnames(all_T1_AFdiff_distance)[n]
+  	}
+}
+
+
+AFdiff_means <- cbind.data.frame(condition=haf.meta.T1.noPAfilt$condition,AFdiff=colMeans(abs(all_T1_AFdiff_distance)))
+## ANOVA
+res_aov <- aov(AFdiff ~ condition,
+  data = AFdiff_means
+)
+
+res_aov <- aov(AFdiff ~ condition,
+  data = AFdiff_means
+)
+
+contrast(emmeans(res_aov, ~ condition), method = "pairwise")
+
+res_glm <- glm(AFdiff~condition, data = AFdiff_means, family = quasipoisson, na.action = na.exclude)
+
+contrast(emmeans(res_glm, ~ condition), method = "pairwise")
+
+
+freq_means_t1_afdiff
+res_glm2 <- glm(af_diff~contrast, data = freq_means_t1_afdiff, family = quasipoisson, na.action = na.exclude)
+
+contrast(emmeans(res_glm2, ~ contrast), method = "pairwise")
+
+###############################
+
+
+#########################################################################
+### Look for non-parallel AF change via Chi-Square and Binomial tests ###
+#########################################################################
+
+## This time, we don't care as much about the level of AF change from TPT0 founders, aside 
+## from the initial filtering of loci, just the direction of change.
+
+## Grab allele frequencies for top 2% of AF changes in any SE, SP, or E samples at TPT1
+temp_table <- merge(top_T1_AFdiff[,c(1:2)],haf.freq.Fmean.T1filt, by=c("CHROM","POS"))
+
+## Set results matrix sizes as N samples X N samples
+matsize <- ncol(haf.freq.Fmean.T1filt)-3
+top_T1_chi_table <- matrix(nrow = matsize, ncol = matsize)#create empty object
+top_T1_binomial_table <- matrix(nrow = matsize, ncol = matsize)#create empty object
+top_T1_cor_table <- matrix(nrow = matsize, ncol = matsize)#create empty object
+
+## Outer loop will cycle through all samples for matrix columns
+for(n in c(4:ncol(haf.freq.Fmean.T1filt))) { 
+	## Inner loop will cycle through all samples for matrix rows
+	for(m in c(4:ncol(haf.freq.Fmean.T1filt))) { 
+			x1 <- (temp_table[,n] - temp_table[,3]) < 0 #is col sample AF down from TPT0
+			x2 <- (temp_table[,m] - temp_table[,3]) < 0 #is row sample AF down from TPT0
+  			temp_df <- cbind(x1,x2) #join outcomes for comparison
+  			temp_mat <- matrix(nrow = 2, ncol = 2) #make outcome table
+  			temp_mat[1,1] <- nrow(temp_df[temp_df[,1]== "FALSE" & temp_df[,2]== "FALSE",])
+  			temp_mat[1,2] <- nrow(temp_df[temp_df[,1]== "TRUE" & temp_df[,2]== "FALSE",])
+  			temp_mat[2,1] <- nrow(temp_df[temp_df[,1]== "FALSE" & temp_df[,2]== "TRUE",])
+  			temp_mat[2,2] <- nrow(temp_df[temp_df[,1]== "TRUE" & temp_df[,2]== "TRUE",])
+			# Run Chi-square test
+			test_results1 <- chisq.test(na.omit(temp_mat))
+			# Save Chi-square statistic
+			top_T1_chi_table[n-3,m-3] <- test_results1$statistic
+			# Run Binomial test
+			test_results2 <- binom.test(c(temp_mat[1,1] + temp_mat[2,2], 
+								temp_mat[1,2] + temp_mat[2,1]), p = 1/2)
+			# Save -log10(p)-value
+			top_T1_binomial_table[n-3,m-3] <- test_results2$statistic
+			#top_T1_binomial_table[n-3,m-3] <- -log10(test_results2$p.value)
+			# Run binary correlation test
+			top_T1_cor_table[n-3,m-3] <- cor(x1, x2)
+	}
+}
+
+### Process Chi-square test results ###
+## name rows and columns in chi-square test results table
+rownames(top_T1_chi_table) <- names(haf.freq.Fmean.T1filt)[-c(1:3)]
+colnames(top_T1_chi_table) <- names(haf.freq.Fmean.T1filt)[-c(1:3)]
+diag(top_T1_chi_table) <- NA #make the self-self correlations NA
+
+## Make the heatmap
+pdf(file = "rudflies_2023_redo.top_T1_chi_table.heatmap.pdf", width=10, height=10)
+	heatmap.2(top_T1_chi_table, dendrogram="both", ColSideColors=sidecols_EvS, RowSideColors=sidecols_EvS, trace = "none")
+dev.off()
+
+## Experimental heatmap to see if we can see patterns in ranks of pairwise comparisons.
+## This one is non-parametric and clusters agnostically to the overall range of values in 
+## the results table.
+top_T1_chi_rank <- apply(t(top_T1_chi_table), 2, rank) #find ranks within each column
+
+## Make the heatmap
+pdf(file = "rudflies_2023_redo.top_T1_chi_rank.heatmap.pdf", width=10, height=10)
+	heatmap.2(top_T1_chi_rank, dendrogram="both", ColSideColors=sidecols_EvS, RowSideColors=sidecols_EvS, trace = "none")
+dev.off()
+
+
+### Process Binomial results ###
+## name rows and columns in binomial test results table
+rownames(top_T1_binomial_table) <- names(haf.freq.Fmean.T1filt)[-c(1:3)]
+colnames(top_T1_binomial_table) <- names(haf.freq.Fmean.T1filt)[-c(1:3)]
+diag(top_T1_binomial_table) <- NA #make the self-self correlations NA
+
+## Make the heatmap
+pdf(file = "rudflies_2023_redo.top_T1_binomial_table.heatmap.pdf", width=10, height=10)
+	heatmap.2(top_T1_binomial_table, dendrogram="both", ColSideColors=sidecols_EvS, RowSideColors=sidecols_EvS, trace = "none")
+dev.off()
+
+## Experimental heatmap to see if we can see patterns in ranks of pairwise comparisons.
+## This one is non-parametric and clusters agnostically to the overall range of values in 
+## the results table.
+top_T1_binomial_rank <- apply(t(top_T1_binomial_table), 2, rank) #find ranks within each column
+
+## Make the heatmap
+pdf(file = "rudflies_2023_redo.top_T1_binomial_rank.heatmap.pdf", width=10, height=10)
+	heatmap.2(top_T1_binomial_rank, dendrogram="both", ColSideColors=sidecols_EvS, RowSideColors=sidecols_EvS, trace = "none")
+dev.off()
+
+
+### Process binary correlation test results ###
+## name rows and columns in correlation results table
+rownames(top_T1_cor_table) <- names(haf.freq.Fmean.T1filt)[-c(1:3)]
+colnames(top_T1_cor_table) <- names(haf.freq.Fmean.T1filt)[-c(1:3)]
+diag(top_T1_cor_table) <- NA #make the self-self correlations NA
+
+## Make the heatmap
+pdf(file = "rudflies_2023_redo.top_T1_cor_table.heatmap.pdf", width=10, height=10)
+	heatmap.2(top_T1_cor_table, dendrogram="both", ColSideColors=sidecols_EvS, RowSideColors=sidecols_EvS, trace = "none")
+dev.off()
+
+## Experimental heatmap to see if we can see patterns in ranks of pairwise comparisons.
+## This one is non-parametric and clusters agnostically to the overtop range of values in 
+## the results table.
+top_T1_cor_rank <- apply(t(top_T1_cor_table), 2, rank) #find ranks within each column
+
+## Make the heatmap
+pdf(file = "rudflies_2023_redo.top_T1_cor_rank.heatmap.pdf", width=10, height=10)
+	heatmap.2(top_T1_cor_rank, dendrogram="both", ColSideColors=sidecols_EvS, RowSideColors=sidecols_EvS, trace = "none")
+dev.off()
+
+
+### Instead of subsetting values by top AF change, what happens if we use all loci?
+## Set results matrix sizes as N samples X N samples
+matsize <- ncol(haf.freq.Fmean.T1filt)-3
+all_T1_chi_table <- matrix(nrow = matsize, ncol = matsize)#create empty object
+all_T1_binomial_table <- matrix(nrow = matsize, ncol = matsize)#create empty object
+all_T1_cor_table <- matrix(nrow = matsize, ncol = matsize)#create empty object
+
+## Outer loop will cycle through all samples for matrix columns
+for(n in c(4:ncol(haf.freq.Fmean.T1filt))) { 
+	## Inner loop will cycle through all samples for matrix rows
+	for(m in c(4:ncol(haf.freq.Fmean.T1filt))) { 
+			#is col sample AF down from TPT0, pull from table with all loci
+			x1 <- (haf.freq.Fmean.T1filt[,n] - haf.freq.Fmean.T1filt[,3]) < 0
+			#is row sample AF down from TPT0, pull from table with all loci
+			x2 <- (haf.freq.Fmean.T1filt[,m] - haf.freq.Fmean.T1filt[,3]) < 0
+  			temp_df <- cbind(x1,x2) #join outcomes for comparison
+  			temp_mat <- matrix(nrow = 2, ncol = 2) #make outcome table
+  			temp_mat[1,1] <- nrow(temp_df[temp_df[,1]== "FALSE" & temp_df[,2]== "FALSE",])
+  			temp_mat[1,2] <- nrow(temp_df[temp_df[,1]== "TRUE" & temp_df[,2]== "FALSE",])
+  			temp_mat[2,1] <- nrow(temp_df[temp_df[,1]== "FALSE" & temp_df[,2]== "TRUE",])
+  			temp_mat[2,2] <- nrow(temp_df[temp_df[,1]== "TRUE" & temp_df[,2]== "TRUE",])
+			# Run Chi-square test
+			test_results1 <- chisq.test(na.omit(temp_mat))
+			# Save Chi-square statistic
+			all_T1_chi_table[n-3,m-3] <- test_results1$statistic
+			# Run Binomial test
+			test_results2 <- binom.test(c(temp_mat[1,1] + temp_mat[2,2], 
+								temp_mat[1,2] + temp_mat[2,1]), p = 1/2)
+			# Save -log10(p)-value
+			all_T1_binomial_table[n-3,m-3] <- -log10(test_results2$p.value)
+			# Run binary correlation test
+			all_T1_cor_table[n-3,m-3] <- cor(x1, x2)
+	}
+}
+
+### Process Chi-square test results ###
+## name rows and columns in chi-square test results table
+rownames(all_T1_chi_table) <- names(haf.freq.Fmean.T1filt)[-c(1:3)]
+colnames(all_T1_chi_table) <- names(haf.freq.Fmean.T1filt)[-c(1:3)]
+diag(all_T1_chi_table) <- NA #make the self-self correlations NA
+
+## Make the heatmap
+pdf(file = "rudflies_2023_redo.all_T1_chi_table.heatmap.pdf", width=10, height=10)
+	heatmap.2(all_T1_chi_table, dendrogram="both", ColSideColors=sidecols_EvS, RowSideColors=sidecols_EvS, trace = "none")
+dev.off()
+
+## Experimental heatmap to see if we can see patterns in ranks of pairwise comparisons.
+## This one is non-parametric and clusters agnostically to the overall range of values in 
+## the results table.
+all_T1_chi_rank <- apply(t(all_T1_chi_table), 2, rank) #find ranks within each column
+
+## Make the heatmap
+pdf(file = "rudflies_2023_redo.all_T1_chi_rank.heatmap.pdf", width=10, height=10)
+	heatmap.2(all_T1_chi_rank, dendrogram="both", ColSideColors=sidecols_EvS, RowSideColors=sidecols_EvS, trace = "none")
+dev.off()
+
+
+### Process Binomial results ###
+## name rows and columns in binomial test results table
+rownames(all_T1_binomial_table) <- names(haf.freq.Fmean.T1filt)[-c(1:3)]
+colnames(all_T1_binomial_table) <- names(haf.freq.Fmean.T1filt)[-c(1:3)]
+diag(all_T1_binomial_table) <- NA #make the self-self correlations NA
+
+## Make the heatmap
+pdf(file = "rudflies_2023_redo.all_T1_binomial_table.heatmap.pdf", width=10, height=10)
+	heatmap.2(all_T1_binomial_table, dendrogram="both", ColSideColors=sidecols_EvS, RowSideColors=sidecols_EvS, trace = "none")
+dev.off()
+
+## Experimental heatmap to see if we can see patterns in ranks of pairwise comparisons.
+## This one is non-parametric and clusters agnostically to the overall range of values in 
+## the results table.
+all_T1_binomial_rank <- apply(t(all_T1_binomial_table), 2, rank) #find ranks within each column
+
+## Make the heatmap
+pdf(file = "rudflies_2023_redo.all_T1_binomial_rank.heatmap.pdf", width=10, height=10)
+	heatmap.2(all_T1_binomial_rank, dendrogram="both", ColSideColors=sidecols_EvS, RowSideColors=sidecols_EvS, trace = "none")
+dev.off()
+
+
+### Process binary correlation test results ###
+## name rows and columns in correlation results table
+rownames(all_T1_cor_table) <- names(haf.freq.Fmean.T1filt)[-c(1:3)]
+colnames(all_T1_cor_table) <- names(haf.freq.Fmean.T1filt)[-c(1:3)]
+diag(all_T1_cor_table) <- NA #make the self-self correlations NA
+
+## Make the heatmap
+pdf(file = "rudflies_2023_redo.all_T1_cor_table.heatmap.pdf", width=10, height=10)
+	heatmap.2(all_T1_cor_table, dendrogram="both", ColSideColors=sidecols_EvS, RowSideColors=sidecols_EvS, trace = "none")
+dev.off()
+
+## Experimental heatmap to see if we can see patterns in ranks of pairwise comparisons.
+## This one is non-parametric and clusters agnostically to the overall range of values in 
+## the results table.
+all_T1_cor_rank <- apply(t(all_T1_cor_table), 2, rank) #find ranks within each column
+
+## Make the heatmap
+pdf(file = "rudflies_2023_redo.all_T1_cor_rank.heatmap.pdf", width=10, height=10)
+	heatmap.2(all_T1_cor_rank, dendrogram="both", ColSideColors=sidecols_EvS, RowSideColors=sidecols_EvS, trace = "none")
 dev.off()
 
 
@@ -1743,11 +2288,11 @@ glm.all.rolwin20.PAvE.logdiffT1[,2] <- as.integer(glm.all.rolwin20.PAvE.logdiffT
 glm.all.rolwin20.PAvE.logdiffT1[,8] <- as.numeric(glm.all.rolwin20.PAvE.logdiffT1[,8])
 
 ## Now build plot
-manh.EvPA.T1minusPAvSE.T1.rolwin20 <- ggplot(glm.all.rolwin20.PAvE.logdiffT1, aes(POS, EvPA.T1minusPAvSE.T1)) + geom_line(alpha = 0.5, colour = "grey") +  
+manh.EvPA.T1minusPAvSE.T1.rolwin20 <- ggplot(glm.all.rolwin20.PAvE.logdiffT1, aes(POS, EvPA.T1minusPAvSE.T1)) + geom_line(alpha = 0, colour = "grey") +  
 	## Add threshold that all sig. SNPs (FDR<0.05) fall above, not all SNPs over line significant though
-	geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$EvPA.T1.fdr.rolwin20<0.05,]$EvPA.T1.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
+	#geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$EvPA.T1.fdr.rolwin20<0.05,]$EvPA.T1.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
 	## Add threshold that all sig. SNPs (FDR<0.01) fall above, not all SNPs over line significant though
-	geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$EvPA.T1.fdr.rolwin20<0.01,]$EvPA.T1.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
+	#geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$EvPA.T1.fdr.rolwin20<0.01,]$EvPA.T1.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
 	## Highlight TPT4 convergent candidate loci, filters described above
 	geom_point(data = merge(merge(unique(glm.all.rolwin20.annot[glm.all.rolwin20.annot$PAvE.T1.fdr.rolwin20<0.01 & glm.all.rolwin20.annot$PAvE.T4.fdr.rolwin20<0.01 & glm.all.rolwin20.annot$SvE.T4.fdr.rolwin20<0.05, c(1:2)]), freq_means_t1[freq_means_t1$E.af < 0.9 & freq_means_t1$E.af > 0.1 & abs(freq_means_t1$E.af - freq_means_t1$PA.af) > 0.1, c(1,2)], by = c("CHROM","POS")),glm.all.rolwin20.PAvE.logdiffT1, by = c("CHROM","POS")),aes(POS, as.numeric(EvPA.T1minusPAvSE.T1)), color = "#97AA71", size = 1) +
 	## Highlight TPT4 convergent candidate loci w/ FlyCADD > 0.6, filters described above
@@ -1809,11 +2354,11 @@ glm.all.rolwin20.SEvE.logdiffT1[,2] <- as.integer(glm.all.rolwin20.SEvE.logdiffT
 glm.all.rolwin20.SEvE.logdiffT1[,8] <- as.numeric(glm.all.rolwin20.SEvE.logdiffT1[,8])
 
 ## Now build plot
-manh.EvSE.T1minusPAvSE.T1.rolwin20 <- ggplot(glm.all.rolwin20.SEvE.logdiffT1, aes(POS, EvSE.T1minusPAvSE.T1)) + geom_line(alpha = 0.5, colour = "grey") +  
+manh.EvSE.T1minusPAvSE.T1.rolwin20 <- ggplot(glm.all.rolwin20.SEvE.logdiffT1, aes(POS, EvSE.T1minusPAvSE.T1)) + geom_line(alpha = 0, colour = "grey") +  
 	## Add threshold that all sig. SNPs (FDR<0.05) fall above, not all SNPs over line significant though
-	geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$EvSE.T1.fdr.rolwin20<0.05,]$EvSE.T1.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
+	#geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$EvSE.T1.fdr.rolwin20<0.05,]$EvSE.T1.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
 	## Add threshold that all sig. SNPs (FDR<0.01) fall above, not all SNPs over line significant though
-	geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$EvSE.T1.fdr.rolwin20<0.01,]$EvSE.T1.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
+	#geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$EvSE.T1.fdr.rolwin20<0.01,]$EvSE.T1.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
 	## Highlight TPT4 convergent candidate loci, filters described above
 geom_point(data = merge(merge(unique(glm.all.rolwin20.annot[glm.all.rolwin20.annot$PAvE.T1.fdr.rolwin20<0.01 & glm.all.rolwin20.annot$PAvE.T4.fdr.rolwin20<0.01 & glm.all.rolwin20.annot$SEvE.T4.fdr.rolwin20<0.05, c(1:2)]), freq_means_t1[freq_means_t1$E.af < 0.9 & freq_means_t1$E.af > 0.1 & abs(freq_means_t1$E.af - freq_means_t1$PA.af) > 0.1, c(1,2)], by = c("CHROM","POS")),glm.all.rolwin20.SEvE.logdiffT1, by = c("CHROM","POS")),aes(POS, as.numeric(EvSE.T1minusPAvSE.T1)), color = "#97AA71", size = 1) +
 	## Highlight TPT4 convergent candidate loci w/ FlyCADD > 0.6, filters described above
@@ -1877,11 +2422,11 @@ glm.all.rolwin20.PAvE.logdiffT4[,2] <- as.integer(glm.all.rolwin20.PAvE.logdiffT
 glm.all.rolwin20.PAvE.logdiffT4[,8] <- as.numeric(glm.all.rolwin20.PAvE.logdiffT4[,8])
 
 ## Now build plot
-manh.PAvE.T4minusPAvS.T4.rolwin20 <- ggplot(glm.all.rolwin20.PAvE.logdiffT4, aes(POS, PAvE.T4minusPAvS.T4)) + geom_line(alpha = 0.5, colour = "grey") +  
+manh.PAvE.T4minusPAvS.T4.rolwin20 <- ggplot(glm.all.rolwin20.PAvE.logdiffT4, aes(POS, PAvE.T4minusPAvS.T4)) + geom_line(alpha = 0, colour = "grey") +  
 	## Add threshold that all sig. SNPs (FDR<0.05) fall above, not all SNPs over line significant though
-	geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$PAvE.T4.fdr.rolwin20<0.05,]$PAvE.T4.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
+	#geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$PAvE.T4.fdr.rolwin20<0.05,]$PAvE.T4.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
 	## Add threshold that all sig. SNPs (FDR<0.01) fall above, not all SNPs over line significant though
-	geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$PAvE.T4.fdr.rolwin20<0.01,]$PAvE.T4.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
+	#geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$PAvE.T4.fdr.rolwin20<0.01,]$PAvE.T4.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
 	## Highlight TPT4 convergent candidate loci, filters described above
 	geom_point(data = merge(merge(unique(glm.all.rolwin20.annot[glm.all.rolwin20.annot$PAvE.T1.fdr.rolwin20<0.01 & glm.all.rolwin20.annot$PAvE.T4.fdr.rolwin20<0.01 & glm.all.rolwin20.annot$SvE.T4.fdr.rolwin20<0.05, c(1:2)]), freq_means_t1[freq_means_t1$E.af < 0.9 & freq_means_t1$E.af > 0.1 & abs(freq_means_t1$E.af - freq_means_t1$PA.af) > 0.1, c(1,2)], by = c("CHROM","POS")),glm.all.rolwin20.PAvE.logdiffT4, by = c("CHROM","POS")),aes(POS, as.numeric(PAvE.T4minusPAvS.T4)), color = "#97AA71", size = 1) +
 	## Highlight TPT4 convergent candidate loci w/ FlyCADD > 0.6, filters described above
@@ -1943,11 +2488,11 @@ glm.all.rolwin20.SPvE.logdiffT4[,2] <- as.integer(glm.all.rolwin20.SPvE.logdiffT
 glm.all.rolwin20.SPvE.logdiffT4[,8] <- as.numeric(glm.all.rolwin20.SPvE.logdiffT4[,8])
 
 ## Now build plot
-manh.SPvE.T4minusPAvS.T4.rolwin20 <- ggplot(glm.all.rolwin20.SPvE.logdiffT4, aes(POS, SvE.T4minusPAvS.T4)) + geom_line(alpha = 0.5, colour = "grey") +  
+manh.SPvE.T4minusPAvS.T4.rolwin20 <- ggplot(glm.all.rolwin20.SPvE.logdiffT4, aes(POS, SvE.T4minusPAvS.T4)) + geom_line(alpha = 0, colour = "grey") +  
 	## Add threshold that all sig. SNPs (FDR<0.05) fall above, not all SNPs over line significant though
-	geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$SvE.T4.fdr.rolwin20<0.05,]$SvE.T4.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
+	#geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$SvE.T4.fdr.rolwin20<0.05,]$SvE.T4.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
 	## Add threshold that all sig. SNPs (FDR<0.01) fall above, not all SNPs over line significant though
-	geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$SvE.T4.fdr.rolwin20<0.01,]$SvE.T4.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
+	#geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$SvE.T4.fdr.rolwin20<0.01,]$SvE.T4.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
 	## Highlight TPT4 convergent candidate loci, filters described above
 	geom_point(data = merge(merge(unique(glm.all.rolwin20.annot[glm.all.rolwin20.annot$PAvE.T1.fdr.rolwin20<0.01 & glm.all.rolwin20.annot$PAvE.T4.fdr.rolwin20<0.01 & glm.all.rolwin20.annot$SvE.T4.fdr.rolwin20<0.05, c(1:2)]), freq_means_t1[freq_means_t1$E.af < 0.9 & freq_means_t1$E.af > 0.1 & abs(freq_means_t1$E.af - freq_means_t1$PA.af) > 0.1, c(1,2)], by = c("CHROM","POS")),glm.all.rolwin20.SPvE.logdiffT4, by = c("CHROM","POS")),aes(POS, as.numeric(SvE.T4minusPAvS.T4)), color = "#97AA71", size = 1) +
 	## Highlight TPT4 convergent candidate loci w/ FlyCADD > 0.6, filters described above
@@ -2011,11 +2556,11 @@ glm.all.rolwin20.PAvE.logdiff[,2] <- as.integer(glm.all.rolwin20.PAvE.logdiff[,2
 glm.all.rolwin20.PAvE.logdiff[,8] <- as.numeric(glm.all.rolwin20.PAvE.logdiff[,8])
 
 ## Now build plot
-manh.PAvEminusPAvS.rolwin20 <- ggplot(glm.all.rolwin20.PAvE.logdiff, aes(POS, PAvEminusPAvS)) + geom_line(alpha = 0.5, colour = "grey") +  
+manh.PAvEminusPAvS.rolwin20 <- ggplot(glm.all.rolwin20.PAvE.logdiff, aes(POS, PAvEminusPAvS)) + geom_line(alpha = 0, colour = "grey") +  
 	## Add threshold that all sig. SNPs (FDR<0.05) fall above, not all SNPs over line significant though
-	geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$PAvE.fdr.rolwin20<0.05,]$PAvE.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
+	#geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$PAvE.fdr.rolwin20<0.05,]$PAvE.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
 	## Add threshold that all sig. SNPs (FDR<0.01) fall above, not all SNPs over line significant though
-	geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$PAvE.fdr.rolwin20<0.01,]$PAvE.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
+	#geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$PAvE.fdr.rolwin20<0.01,]$PAvE.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
 	## Highlight TPT4 convergent candidate loci, filters described above
 	geom_point(data = merge(merge(unique(glm.all.rolwin20.annot[glm.all.rolwin20.annot$PAvE.T1.fdr.rolwin20<0.01 & glm.all.rolwin20.annot$PAvE.T4.fdr.rolwin20<0.01 & glm.all.rolwin20.annot$SvE.T4.fdr.rolwin20<0.05, c(1:2)]), freq_means_t1[freq_means_t1$E.af < 0.9 & freq_means_t1$E.af > 0.1 & abs(freq_means_t1$E.af - freq_means_t1$PA.af) > 0.1, c(1,2)], by = c("CHROM","POS")),glm.all.rolwin20.PAvE.logdiff, by = c("CHROM","POS")),aes(POS, as.numeric(PAvEminusPAvS)), color = "#97AA71", size = 1) +
 	## Highlight TPT4 convergent candidate loci w/ FlyCADD > 0.6, filters described above
@@ -2077,11 +2622,11 @@ glm.all.rolwin20.SvE.logdiff[,2] <- as.integer(glm.all.rolwin20.SvE.logdiff[,2])
 glm.all.rolwin20.SvE.logdiff[,8] <- as.numeric(glm.all.rolwin20.SvE.logdiff[,8])
 
 ## Now build plot
-manh.SvEminusPAvS.rolwin20 <- ggplot(glm.all.rolwin20.SvE.logdiff, aes(POS, SvEminusPAvS)) + geom_line(alpha = 0.5, colour = "grey") +  
+manh.SvEminusPAvS.rolwin20 <- ggplot(glm.all.rolwin20.SvE.logdiff, aes(POS, SvEminusPAvS)) + geom_line(alpha = 0, colour = "grey") +  
 	## Add threshold that all sig. SNPs (FDR<0.05) fall above, not all SNPs over line significant though
-	geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$SvE.fdr.rolwin20<0.05,]$SvE.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
+	#geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$SvE.fdr.rolwin20<0.05,]$SvE.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
 	## Add threshold that all sig. SNPs (FDR<0.01) fall above, not all SNPs over line significant though
-	geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$SvE.fdr.rolwin20<0.01,]$SvE.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
+	#geom_hline(yintercept = min(na.omit(glm.all.rolwin20[glm.all.rolwin20$SvE.fdr.rolwin20<0.01,]$SvE.logp.rolwin20)), color = "black",linetype = "dashed",linewidth = .25) +
 	## Highlight TPT4 convergent candidate loci, filters described above
 	geom_point(data = merge(merge(unique(glm.all.rolwin20.annot[glm.all.rolwin20.annot$PAvE.T1.fdr.rolwin20<0.01 & glm.all.rolwin20.annot$PAvE.T4.fdr.rolwin20<0.01 & glm.all.rolwin20.annot$SvE.T4.fdr.rolwin20<0.05, c(1:2)]), freq_means_t1[freq_means_t1$E.af < 0.9 & freq_means_t1$E.af > 0.1 & abs(freq_means_t1$E.af - freq_means_t1$PA.af) > 0.1, c(1,2)], by = c("CHROM","POS")),glm.all.rolwin20.SvE.logdiff, by = c("CHROM","POS")),aes(POS, as.numeric(SvEminusPAvS)), color = "#97AA71", size = 1) +
 	## Highlight TPT4 convergent candidate loci w/ FlyCADD > 0.6, filters described above
@@ -2111,7 +2656,7 @@ manh.SvEminusPAvS.rolwin20 <- ggplot(glm.all.rolwin20.SvE.logdiff, aes(POS, SvEm
 ##	green - TPT4 SP and PA convergent adaptive loci
 ##	brown - TPT4 SP and PA convergent adaptive loci w/ FlyCADD score > 0.06
 ##	black - TPT1 SE, TPT4 SP, and PA convergent adaptive loci
-pdf(file = "rudflies_2023_redo.convergent_evo_residuals.rolwin20.glm.manh.pdf", width = 11.25, height = 9)
+pdf(file = "rudflies_2023_redo.convergent_evo_residuals.rolwin20.glm.manh.pdf", width = 11.25, height = 6)
 	ggarrange(manh.EvPA.T1minusPAvSE.T1.rolwin20, 
 			  manh.EvSE.T1minusPAvSE.T1.rolwin20, 
 			  manh.PAvE.T4minusPAvS.T4.rolwin20, 
@@ -2122,27 +2667,31 @@ pdf(file = "rudflies_2023_redo.convergent_evo_residuals.rolwin20.glm.manh.pdf", 
 dev.off()
 
 
-
-
-
 ### Allele frequency plots over time for top candidates ###
 
 ## TPT1 SE & PA convergent adaptive candidates
 ## Merge functional candidate list with residual score tables
 TPT1_top_candidates <- merge(merge(glm.all.rolwin20.TPT1.functional_convergent_candidates, glm.all.rolwin20.SEvE.logdiffT1, by=c("CHROM","POS")), glm.all.rolwin20.PAvE.logdiffT1, by=c("CHROM","POS"))
 
+## Rank by FlyCADD scores
 TPT1_top_candidates$flycadd_rank <- NA
 TPT1_top_candidates$flycadd_rank <- rank(TPT1_top_candidates$FLYCADD)
+## Normalize FlyCADD ranks
 TPT1_top_candidates$flycadd_rank <- TPT1_top_candidates$flycadd_rank/max(TPT1_top_candidates$flycadd_rank)*100
+## Rank by TPT1 convergent candidate SE residual scores
 TPT1_top_candidates$SE_rank <- NA
 TPT1_top_candidates$SE_rank <- rank(TPT1_top_candidates$EvSE.T1minusPAvSE.T1)
+## Normalize TPT1 SE residual ranks
 TPT1_top_candidates$SE_rank <- TPT1_top_candidates$SE_rank/max(TPT1_top_candidates$SE_rank)*100
+## Rank by TPT1 convergent candidate PA residual scores
 TPT1_top_candidates$PA_rank <- NA
 TPT1_top_candidates$PA_rank <- rank(TPT1_top_candidates$EvPA.T1minusPAvSE.T1)
+## Normalize TPT1 PA residual ranks
 TPT1_top_candidates$PA_rank <- TPT1_top_candidates$PA_rank/max(TPT1_top_candidates$PA_rank)*100
-
+## Find mean rank
 TPT1_top_candidates$mean_rank1 <- NA
 TPT1_top_candidates$mean_rank1 <- (TPT1_top_candidates$flycadd_rank + TPT1_top_candidates$SE_rank + TPT1_top_candidates$PA_rank)/3
+## Find top ranked loci
 TPT1_top_candidates[TPT1_top_candidates$mean_rank1==max(TPT1_top_candidates$mean_rank1),]
 
 ## 3R_15541740 - top TPT1 candidate in SE, PA, and ranked flycadd scores
@@ -2190,21 +2739,25 @@ dev.off()
 
 ## TPT4 SP & PA convergent adaptive candidates
 TPT4_top_candidates <- merge(merge(glm.all.rolwin20.TPT4.functional_convergent_candidates, glm.all.rolwin20.SPvE.logdiffT4, by=c("CHROM","POS")), glm.all.rolwin20.PAvE.logdiffT4, by=c("CHROM","POS"))
-
+## Rank by FlyCADD scores
 TPT4_top_candidates$flycadd_rank <- NA
 TPT4_top_candidates$flycadd_rank <- rank(TPT4_top_candidates$FLYCADD)
+## Normalize FlyCADD ranks
 TPT4_top_candidates$flycadd_rank <- TPT4_top_candidates$flycadd_rank/max(TPT4_top_candidates$flycadd_rank)*100
-
+## Rank by TPT4 convergent candidate SP residual scores
 TPT4_top_candidates$SP_rank <- NA
 TPT4_top_candidates$SP_rank <- rank(TPT4_top_candidates$SvE.T4minusPAvS.T4)
+## Normalize TPT4 SP residual ranks
 TPT4_top_candidates$SP_rank <- TPT4_top_candidates$SP_rank/max(TPT4_top_candidates$SP_rank)*100
-
+## Rank by TPT4 convergent candidate PA residual scores
 TPT4_top_candidates$PA_rank <- NA
 TPT4_top_candidates$PA_rank <- rank(TPT4_top_candidates$PAvE.T4minusPAvS.T4)
+## Normalize TPT4 PA residual ranks
 TPT4_top_candidates$PA_rank <- TPT4_top_candidates$PA_rank/max(TPT4_top_candidates$PA_rank)*100
-
+## Find mean rank
 TPT4_top_candidates$mean_rank1 <- NA
 TPT4_top_candidates$mean_rank1 <- (TPT4_top_candidates$flycadd_rank + TPT4_top_candidates$SP_rank + TPT4_top_candidates$PA_rank)/3
+## Find top ranked loci
 TPT4_top_candidates[TPT4_top_candidates$mean_rank1==max(TPT4_top_candidates$mean_rank1),]
 
 ## 3R_7856392 - top TPT4 candidate in SP, PA, and ranked flycadd scores
@@ -2253,21 +2806,25 @@ dev.off()
 
 ## All TPT S & PA convergent adaptive candidates
 AllTPT_top_candidates <- merge(merge(glm.all.rolwin20.adaptive.fdr10, glm.all.rolwin20.SvE.logdiff, by=c("CHROM","POS")), glm.all.rolwin20.PAvE.logdiff, by=c("CHROM","POS"))
-
+## Rank by FlyCADD scores
 AllTPT_top_candidates$flycadd_rank <- NA
 AllTPT_top_candidates$flycadd_rank <- rank(AllTPT_top_candidates$FLYCADD)
+## Normalize FlyCADD ranks
 AllTPT_top_candidates$flycadd_rank <- AllTPT_top_candidates$flycadd_rank/max(AllTPT_top_candidates$flycadd_rank)*100
-
+## Rank by All TPT convergent candidate S residual scores
 AllTPT_top_candidates$S_rank <- NA
 AllTPT_top_candidates$S_rank <- rank(AllTPT_top_candidates$SvEminusPAvS)
+## Normalize All TPT S residual ranks
 AllTPT_top_candidates$S_rank <- AllTPT_top_candidates$S_rank/max(AllTPT_top_candidates$S_rank)*100
-
+## Rank by All TPT convergent candidate PA residual scores
 AllTPT_top_candidates$PA_rank <- NA
 AllTPT_top_candidates$PA_rank <- rank(AllTPT_top_candidates$PAvEminusPAvS)
+## Normalize All TPT PA residual ranks
 AllTPT_top_candidates$PA_rank <- AllTPT_top_candidates$PA_rank/max(AllTPT_top_candidates$PA_rank)*100
-
+## Find mean rank
 AllTPT_top_candidates$mean_rank1 <- NA
 AllTPT_top_candidates$mean_rank1 <- (AllTPT_top_candidates$flycadd_rank + AllTPT_top_candidates$S_rank + AllTPT_top_candidates$PA_rank)/3
+## Find top ranked loci
 AllTPT_top_candidates[AllTPT_top_candidates$mean_rank1==max(AllTPT_top_candidates$mean_rank1),]
 
 ## 3L_18437252 - top candidate in all TPT in S, PA, and ranked flycadd scores
@@ -2595,7 +3152,7 @@ manh_SEvSP_all <- ggplot(glm_PAvSvSEvE_all, aes(POS, SEvSP.T1.logp)) +
 
 # Dropped cage 3 (SP)
 manh_SEvSP_no3 <- ggplot(glm_PAvSvSEvE_all, aes(POS, SEvSP.T1_no3.logp)) +
-	geom_line(alpha = 0.5, colour = "grey") +  
+	geom_line(alpha = 0, colour = "grey") +  
 	# highlight significant loci (FDR < 0.05) from GLM contrast using all samples
 	geom_point(data=na.omit(glm_PAvSvSEvE_all[glm_PAvSvSEvE_all$SEvSP.T1.fdr < 0.05,]), aes(POS, SEvSP.T1_no3.logp, color = "red"), size = 1) +
 	# draw a dotted line at the minimum value of all significant loci (FDR < 0.05) 
@@ -2614,7 +3171,7 @@ manh_SEvSP_no3 <- ggplot(glm_PAvSvSEvE_all, aes(POS, SEvSP.T1_no3.logp)) +
 
 # Dropped cage 7 (SP)
 manh_SEvSP_no7 <- ggplot(glm_PAvSvSEvE_all, aes(POS, SEvSP.T1_no7.logp)) +
-	geom_line(alpha = 0.5, colour = "grey") +  
+	geom_line(alpha = 0, colour = "grey") +  
 	# highlight significant loci (FDR < 0.05) from GLM contrast using all samples
 	geom_point(data=na.omit(glm_PAvSvSEvE_all[glm_PAvSvSEvE_all$SEvSP.T1.fdr < 0.05,]), aes(POS, SEvSP.T1_no7.logp, color = "red"), size = 1) +
 	# draw a dotted line at the minimum value of all significant loci (FDR < 0.05) 
@@ -2633,7 +3190,7 @@ manh_SEvSP_no7 <- ggplot(glm_PAvSvSEvE_all, aes(POS, SEvSP.T1_no7.logp)) +
 
 # Dropped cage 11 (SE)
 manh_SEvSP_no11 <- ggplot(glm_PAvSvSEvE_all, aes(POS, SEvSP.T1_no11.logp)) +
-	geom_line(alpha = 0.5, colour = "grey") +  
+	geom_line(alpha = 0, colour = "grey") +  
 	# highlight significant loci (FDR < 0.05) from GLM contrast using all samples
 	geom_point(data=na.omit(glm_PAvSvSEvE_all[glm_PAvSvSEvE_all$SEvSP.T1.fdr < 0.05,]), aes(POS, SEvSP.T1_no11.logp, color = "red"), size = 1) +
 	# draw a dotted line at the minimum value of all significant loci (FDR < 0.05) 
@@ -2652,7 +3209,7 @@ manh_SEvSP_no11 <- ggplot(glm_PAvSvSEvE_all, aes(POS, SEvSP.T1_no11.logp)) +
 
 # Dropped cage 15 (SE)
 manh_SEvSP_no15 <- ggplot(glm_PAvSvSEvE_all, aes(POS, SEvSP.T1_no15.logp)) +
-	geom_line(alpha = 0.5, colour = "grey") +  
+	geom_line(alpha = 0, colour = "grey") +  
 	# highlight significant loci (FDR < 0.05) from GLM contrast using all samples
 	geom_point(data=na.omit(glm_PAvSvSEvE_all[glm_PAvSvSEvE_all$SEvSP.T1.fdr < 0.05,]), aes(POS, SEvSP.T1_no15.logp, color = "red"), size = 1) +
 	# draw a dotted line at the minimum value of all significant loci (FDR < 0.05) 
@@ -2690,7 +3247,7 @@ manh_SEvSP_no21 <- ggplot(glm_PAvSvSEvE_all, aes(POS, SEvSP.T1_no21.logp)) +
 
 # Dropped cage 27 (SE)
 manh_SEvSP_no27 <- ggplot(glm_PAvSvSEvE_all, aes(POS, SEvSP.T1_no27.logp)) +
-	geom_line(alpha = 0.5, colour = "grey") +  
+	geom_line(alpha = 0, colour = "grey") +  
 	# highlight significant loci (FDR < 0.05) from GLM contrast using all samples
 	geom_point(data=na.omit(glm_PAvSvSEvE_all[glm_PAvSvSEvE_all$SEvSP.T1.fdr < 0.05,]), aes(POS, SEvSP.T1_no27.logp, color = "red"), size = 1) +
 	# draw a dotted line at the minimum value of all significant loci (FDR < 0.05) 
@@ -2709,7 +3266,7 @@ manh_SEvSP_no27 <- ggplot(glm_PAvSvSEvE_all, aes(POS, SEvSP.T1_no27.logp)) +
 
 # Dropped cage 33 (SP)
 manh_SEvSP_no33 <- ggplot(glm_PAvSvSEvE_all, aes(POS, SEvSP.T1_no33.logp)) +
-	geom_line(alpha = 0.5, colour = "grey") +  
+	geom_line(alpha = 0, colour = "grey") +  
 	# highlight significant loci (FDR < 0.05) from GLM contrast using all samples
 	geom_point(data=na.omit(glm_PAvSvSEvE_all[glm_PAvSvSEvE_all$SEvSP.T1.fdr < 0.05,]), aes(POS, SEvSP.T1_no33.logp, color = "red"), size = 1) +
 	# draw a dotted line at the minimum value of all significant loci (FDR < 0.05) 
@@ -2728,7 +3285,7 @@ manh_SEvSP_no33 <- ggplot(glm_PAvSvSEvE_all, aes(POS, SEvSP.T1_no33.logp)) +
   
 # Dropped cage 37 (SP)
 manh_SEvSP_no37 <- ggplot(glm_PAvSvSEvE_all, aes(POS, SEvSP.T1_no37.logp)) + 
-	geom_line(alpha = 0.5, colour = "grey") +  
+	geom_line(alpha = 0, colour = "grey") +  
 	# highlight significant loci (FDR < 0.05) from GLM contrast using all samples
 	geom_point(data=na.omit(glm_PAvSvSEvE_all[glm_PAvSvSEvE_all$SEvSP.T1.fdr < 0.05,]), aes(POS, SEvSP.T1_no37.logp, color = "red"), size = 1) +
 	# draw a dotted line at the minimum value of all significant loci (FDR < 0.05) 
@@ -2765,7 +3322,7 @@ manh_SEvSP_no41 <- ggplot(glm_PAvSvSEvE_all, aes(POS, SEvSP.T1_no41.logp)) +
 
 # Dropped cage 45 (SE)
 manh_SEvSP_no45 <- ggplot(glm_PAvSvSEvE_all, aes(POS, SEvSP.T1_no45.logp)) +
-	geom_line(alpha = 0.5, colour = "grey") +  
+	geom_line(alpha = 0, colour = "grey") +  
 	# highlight significant loci (FDR < 0.05) from GLM contrast using all samples
 	geom_point(data=na.omit(glm_PAvSvSEvE_all[glm_PAvSvSEvE_all$SEvSP.T1.fdr < 0.05,]), aes(POS, SEvSP.T1_no45.logp, color = "red"), size = 1) +
 	# draw a dotted line at the minimum value of all significant loci (FDR < 0.05) 
@@ -2796,7 +3353,7 @@ dev.off()
 
 # No dropped cages for reference
 manh_EvSP_all <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSP.T1.logp)) + 
-	geom_line(alpha = 0.5, colour = "grey") +  
+	geom_line(alpha = 0, colour = "grey") +  
 	# visual options
   	scale_fill_discrete(guide="none") +
   	facet_grid(~ CHROM, scales = "free_x", space = "free_x") +
@@ -2811,7 +3368,7 @@ manh_EvSP_all <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSP.T1.logp)) +
 
 # Dropped cage 3 (SP)
 manh_EvSP_no3 <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSP.T1_no3.logp)) + 
-	geom_line(alpha = 0.5, colour = "grey") +  	
+	geom_line(alpha = 0, colour = "grey") +  	
   	scale_fill_discrete(guide="none") +
   	facet_grid(~ CHROM, scales = "free_x", space = "free_x") +
   	scale_y_continuous(limits = c(0, max(na.omit(glm_PAvSvSEvE_all$EvSP.T1.logp)))) +
@@ -2825,7 +3382,7 @@ manh_EvSP_no3 <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSP.T1_no3.logp)) +
 
 # Dropped cage 7 (SP)
 manh_EvSP_no7 <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSP.T1_no7.logp)) + 
-	geom_line(alpha = 0.5, colour = "grey") +  
+	geom_line(alpha = 0, colour = "grey") +  
 	# highlight significant loci (FDR < 0.05) from GLM contrast using all samples
 	# visual options
   	scale_fill_discrete(guide="none") +
@@ -2841,7 +3398,7 @@ manh_EvSP_no7 <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSP.T1_no7.logp)) +
 
 # Dropped cage 33 (SP)
 manh_EvSP_no33 <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSP.T1_no33.logp)) + 
-	geom_line(alpha = 0.5, colour = "grey") +  
+	geom_line(alpha = 0, colour = "grey") +  
 	# visual options
   	scale_fill_discrete(guide="none") +
   	facet_grid(~ CHROM, scales = "free_x", space = "free_x") +
@@ -2856,7 +3413,7 @@ manh_EvSP_no33 <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSP.T1_no33.logp)) +
 
 # Dropped cage 37 (SP)
 manh_EvSP_no37 <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSP.T1_no37.logp)) + 
-	geom_line(alpha = 0.5, colour = "grey") +  
+	geom_line(alpha = 0, colour = "grey") +  
 	# visual options
   	scale_fill_discrete(guide="none") +
   	facet_grid(~ CHROM, scales = "free_x", space = "free_x") +
@@ -2882,7 +3439,7 @@ dev.off()
 
 # No dropped cages for reference
 manh_EvSE_all <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSE.T1.logp)) + 
-	geom_line(alpha = 0.5, colour = "grey") +  
+	geom_line(alpha = 0, colour = "grey") +  
 	# visual options
   	scale_fill_discrete(guide="none") +
   	facet_grid(~ CHROM, scales = "free_x", space = "free_x") +
@@ -2897,7 +3454,7 @@ manh_EvSE_all <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSE.T1.logp)) +
 
 # Dropped cage 11 (SE)
 manh_EvSE_no11 <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSE.T1_no11.logp)) + 
-	geom_line(alpha = 0.5, colour = "grey") +  
+	geom_line(alpha = 0, colour = "grey") +  
 	# visual options
   	scale_fill_discrete(guide="none") +
   	facet_grid(~ CHROM, scales = "free_x", space = "free_x") +
@@ -2927,7 +3484,7 @@ manh_EvSE_no15 <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSE.T1_no15.logp)) +
 
 # Dropped cage 21 (SE)
 manh_EvSE_no21 <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSE.T1_no21.logp)) + 
-	geom_line(alpha = 0.5, colour = "grey") +  
+	geom_line(alpha = 0, colour = "grey") +  
 	# visual options
   	scale_fill_discrete(guide="none") +
   	facet_grid(~ CHROM, scales = "free_x", space = "free_x") +
@@ -2942,7 +3499,7 @@ manh_EvSE_no21 <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSE.T1_no21.logp)) +
   
 # Dropped cage 27 (SE)
 manh_EvSE_no27 <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSE.T1_no27.logp)) + 
-	geom_line(alpha = 0.5, colour = "grey") +  
+	geom_line(alpha = 0, colour = "grey") +  
 	# visual options
   	scale_fill_discrete(guide="none") +
   	facet_grid(~ CHROM, scales = "free_x", space = "free_x") +
@@ -2957,7 +3514,7 @@ manh_EvSE_no27 <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSE.T1_no27.logp)) +
   	
 # Dropped cage 41 (SE)
 manh_EvSE_no41 <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSE.T1_no41.logp)) + 
-	geom_line(alpha = 0.5, colour = "grey") +  
+	geom_line(alpha = 0, colour = "grey") +  
 	# visual options
   	scale_fill_discrete(guide="none") +
   	facet_grid(~ CHROM, scales = "free_x", space = "free_x") +
@@ -2972,7 +3529,7 @@ manh_EvSE_no41 <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSE.T1_no41.logp)) +
   	
 # Dropped cage 45 (SE)
 manh_EvSE_no45 <- ggplot(glm_PAvSvSEvE_all, aes(POS, EvSE.T1_no45.logp)) + 
-	geom_line(alpha = 0.5, colour = "grey") +  
+	geom_line(alpha = 0, colour = "grey") +  
 	# visual options
   	scale_fill_discrete(guide="none") +
   	facet_grid(~ CHROM, scales = "free_x", space = "free_x") +
@@ -3195,7 +3752,7 @@ cor.test(as.numeric(all.freq$R.FREQ.x), as.numeric(all.freq$hafpipe.means.R), me
 ## Create a density plot comparing BCFtools VCF frequencies and Hafpipe frequencies
 pdf(file = "rudflies_2023_redo.vcf_vs_hafpipe_freqs.density.pdf", width=6.5, height=5)
 	ggplot(all.freq, 
-	  aes(x=R.FREQ.y, y=hafpipe.means)) + 
+	  aes(x=R.FREQ.y, y=hafpipe.means.R)) + 
 	  geom_bin2d(bins = 50) +
 	  scale_fill_continuous(type = "viridis") +
 	  xlim(0.05, 0.95) +
@@ -3220,6 +3777,10 @@ cor.test(as.numeric(all.freq$R.FREQ.y), as.numeric(all.freq$hafpipe.means.R), me
 ### Figure S12 ###
 ##################
 
+### General premise for this analysis is checking to see whether loci that showed signs of 
+### adaptation in the persistent S cages may have showed early signs of adaptation in 
+### extinct S cages.
+
 ## Use this color scheme for "condition" side colors
 sidecols <- haf.meta.T1filt$condition 
 sidecols <- gsub("PA","#495184",sidecols)
@@ -3228,30 +3789,38 @@ sidecols <- gsub("SE","#848556",sidecols)
 sidecols <- gsub("E","#D26183",sidecols)
 
 ### Heatmaps for TPT1 SE outliers SNPs among TPT1 AF frequencies ###
+## Baseline to see what adaptive signals look like the the pops they were detected within
 
 ## Select SNPs from AF table significant (FDR<0.05) in GLM contrasts between E vs SE:TPT1
 haf.freq.SE.fdr05 <- as.matrix(merge(na.omit(glm.all.rolwin20[glm.all.rolwin20$EvSE.T1.fdr.rolwin20 < 0.05,c(1:2)]),cbind(haf.sites.T1filt,haf.freq.T1filt), by=c("CHROM","POS"))[,-c(1:2)])
 
 ## Make the heatmap
+haf.freq.SE.fdr05.heat <- heatmap.2(haf.freq.SE.fdr05, Rowv=FALSE, dendrogram="col", ColSideColors=sidecols, labRow=FALSE, trace = "none")
+
 pdf(file = "rudflies_2023_redo.haf.freq.SE.fdr05.TPT1.heatmap.pdf", width=10, height=10)
-	heatmap.2(unique(haf.freq.SE.fdr05), Rowv=FALSE, dendrogram="col", ColSideColors=sidecols, labRow=FALSE, trace = "none")
+	heatmap.2(haf.freq.SE.fdr05, Rowv=FALSE, dendrogram="col", ColSideColors=sidecols, labRow=FALSE, trace = "none")
 dev.off()
 
 ## Select SNPs from AF table significant (FDR<0.01) in GLM contrasts between E vs SE:TPT1
 haf.freq.SE.fdr01 <- as.matrix(merge(na.omit(glm.all.rolwin20[glm.all.rolwin20$EvSE.T1.fdr.rolwin20 < 0.01,c(1:2)]),cbind(haf.sites.T1filt,haf.freq.T1filt), by=c("CHROM","POS"))[,-c(1:2)])
 
 ## Make the heatmap
+haf.freq.SE.fdr01.heat <- heatmap.2(haf.freq.SE.fdr01, Rowv=FALSE, dendrogram="col", ColSideColors=sidecols, labRow=FALSE, trace = "none")
+
 pdf(file = "rudflies_2023_redo.haf.freq.SE.fdr01.TPT1.heatmap.pdf", width=10, height=10)
 	heatmap.2(haf.freq.SE.fdr01, Rowv=FALSE, dendrogram="col", ColSideColors=sidecols, labRow=FALSE, trace = "none")
 dev.off()
 
 
 ### Heatmaps for TPT4 SP outliers SNPs among TPT1 AF frequencies ###
+## Are SE pops adapting early in some of the same regions SP eventually shows signal?
 
 ## Select SNPs from AF table significant (FDR<0.05) in GLM contrasts between E vs SP:TPT4
 haf.freq.SP.fdr05 <- as.matrix(merge(na.omit(glm.all.rolwin20[glm.all.rolwin20$SvE.T4.fdr.rolwin20 < 0.05,c(1:2)]),cbind(haf.sites.T1filt,haf.freq.T1filt), by=c("CHROM","POS"))[,-c(1:2)])
 
 ## Make the heatmap
+haf.freq.SP.fdr05.heat <- heatmap.2(haf.freq.SP.fdr05, Rowv=FALSE, dendrogram="col", ColSideColors=sidecols, labRow=FALSE, trace = "none")
+
 pdf(file = "rudflies_2023_redo.haf.freq.SP.fdr05.TPT1.heatmap.pdf", width=10, height=10)
 	heatmap.2(haf.freq.SP.fdr05, Rowv=FALSE, dendrogram="col", ColSideColors=sidecols, labRow=FALSE, trace = "none")
 dev.off()
@@ -3260,12 +3829,14 @@ dev.off()
 haf.freq.SP.fdr01 <- as.matrix(merge(na.omit(glm.all.rolwin20[glm.all.rolwin20$SvE.T4.fdr.rolwin20 < 0.01,c(1:2)]),cbind(haf.sites.T1filt,haf.freq.T1filt), by=c("CHROM","POS"))[,-c(1:2)])
 
 ## Make the heatmap
+haf.freq.SP.fdr01.heat <- heatmap.2(haf.freq.SP.fdr01, Rowv=FALSE, dendrogram="col", ColSideColors=sidecols, labRow=FALSE, trace = "none")
+
 pdf(file = "rudflies_2023_redo.haf.freq.SP.fdr01.TPT1.heatmap.pdf", width=10, height=10)
 	heatmap.2(haf.freq.SP.fdr01, Rowv=FALSE, dendrogram="col", ColSideColors=sidecols, labRow=FALSE, trace = "none")
 dev.off()
 
 
-### Now we're switching to outlier heatmaps among TPT4-sample frequencies
+### Now we're switching to outlier heatmaps among TPT4-sample frequencies ###
 
 ## Make TPT4 AF table subset
 ## Filter metadata for TPT4 samples for PA, S, and E
@@ -3289,12 +3860,15 @@ sidecols2 <- gsub("PA","#495184",sidecols2)
 sidecols2 <- gsub("S","#D9B851",sidecols2)
 sidecols2 <- gsub("E","#D26183",sidecols2)
 
-### Heatmaps for TPT4 SP outliers SNPs among TPT1 AF frequencies ###
+### Heatmaps for TPT4 SP outlier SNPs among TPT1 AF frequencies ###
+## Are SE pops adapting early in some of the same regions SP eventually shows adaptation?
 
 ## Select SNPs from AF table significant (FDR<0.05) in GLM contrasts between E vs SE:TPT1
 haf.freq.SE.t4.fdr05 <- as.matrix(merge(na.omit(glm.all.rolwin20[glm.all.rolwin20$EvSE.T1.fdr.rolwin20 < 0.05,c(1:2)]),cbind(haf.sites.T4filt,haf.freq.T4filt), by=c("CHROM","POS"))[,-c(1:2)])
 
 ## Make the heatmap
+haf.freq.SE.t4.fdr05.heat <- heatmap.2(haf.freq.SE.t4.fdr05, Rowv=FALSE, dendrogram="col", ColSideColors=sidecols2, labRow=FALSE, trace = "none")
+
 pdf(file = "rudflies_2023_redo.haf.freq.SE.fdr05.TPT4.heatmap.pdf", width=10, height=10)
 	heatmap.2(haf.freq.SE.t4.fdr05, Rowv=FALSE, dendrogram="col", ColSideColors=sidecols2, labRow=FALSE, trace = "none")
 dev.off()
@@ -3303,14 +3877,21 @@ dev.off()
 haf.freq.SE.t4.fdr01 <- as.matrix(merge(na.omit(glm.all.rolwin20[glm.all.rolwin20$EvSE.T1.fdr.rolwin20 < 0.01,c(1:2)]),cbind(haf.sites.T4filt,haf.freq.T4filt), by=c("CHROM","POS"))[,-c(1:2)])
 
 ## Make the heatmap
+haf.freq.SE.t4.fdr01.heat <- heatmap.2(haf.freq.SE.t4.fdr01, Rowv=FALSE, dendrogram="col", ColSideColors=sidecols2, labRow=FALSE, trace = "none")
+
 pdf(file = "rudflies_2023_redo.haf.freq.SE.fdr01.TPT4.heatmap.pdf", width=10, height=10)
 	heatmap.2(haf.freq.SE.t4.fdr01, Rowv=FALSE, dendrogram="col", ColSideColors=sidecols2, labRow=FALSE, trace = "none")
 dev.off()
+
+### Heatmaps for TPT4 SP outlier SNPs among TPT4 AF frequencies ###
+## Baseline to see what adaptive signals look like the the pops they were detected within
 
 ## Select SNPs from AF table significant (FDR<0.05) in GLM contrasts between E vs SP:TPT4
 haf.freq.SP.t4.fdr05 <- as.matrix(merge(na.omit(glm.all.rolwin20[glm.all.rolwin20$SvE.T4.fdr.rolwin20 < 0.05,c(1:2)]),cbind(haf.sites.T4filt,haf.freq.T4filt), by=c("CHROM","POS"))[,-c(1:2)])
 
 ## Make the heatmap
+haf.freq.SP.t4.fdr05.heat <- heatmap.2(haf.freq.SP.t4.fdr05, Rowv=FALSE, dendrogram="col", ColSideColors=sidecols2, labRow=FALSE, trace = "none")
+
 pdf(file = "rudflies_2023_redo.haf.freq.SP.fdr05.TPT4.heatmap.pdf", width=10, height=10)
 	heatmap.2(haf.freq.SP.t4.fdr05, Rowv=FALSE, dendrogram="col", ColSideColors=sidecols2, labRow=FALSE, trace = "none")
 dev.off()
@@ -3319,7 +3900,8 @@ dev.off()
 haf.freq.SP.t4.fdr01 <- as.matrix(merge(na.omit(glm.all.rolwin20[glm.all.rolwin20$SvE.T4.fdr.rolwin20 < 0.01,c(1:2)]),cbind(haf.sites.T4filt,haf.freq.T4filt), by=c("CHROM","POS"))[,-c(1:2)])
 
 ## Make the heatmap
+haf.freq.SP.t4.fdr01.heat <- heatmap.2(haf.freq.SP.t4.fdr01, Rowv=FALSE, dendrogram="col", ColSideColors=sidecols2, labRow=FALSE, trace = "none")
+
 pdf(file = "rudflies_2023_redo.haf.freq.SP.fdr01.TPT4.heatmap.pdf", width=10, height=10)
 	heatmap.2(haf.freq.SP.t4.fdr01, Rowv=FALSE, dendrogram="col", ColSideColors=sidecols2, labRow=FALSE, trace = "none")
 dev.off()
-
